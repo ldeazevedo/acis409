@@ -482,6 +482,25 @@ public final class Config
 	public static int TRADE_CHAT_TIME;
 	public static int SOCIAL_TIME;
 	
+	/** Bot Prevention System */
+	public static boolean BPS_BOTS_PREVENTION;
+	public static boolean BPS_ALLOW_INCORRECT_CHOICE;
+	public static int BPS_KILLS_COUNTER;
+	public static int BPS_KILLS_COUNTER_RANDOMIZATION;
+	public static int BPS_VALIDATION_TIME;
+	public static int BPS_PUNISHMENT;
+	public static int BPS_PUNISHMENT_TIME;
+	public static boolean BPS_CHECK_BISHOPS;
+	public static boolean BPS_CHECK_ELDERS;
+	public static boolean BPS_CHECK_PROPHETS;
+	public static boolean BPS_CHECK_BLADEDANCERS;
+	public static boolean BPS_CHECK_SWORDSINGERS;
+	public static boolean BPS_CHECK_WARCRYERS;
+	public static boolean BPS_CHECK_OVERLORDS;
+	public static boolean BPS_ENABLE_REWARD;
+	public static int BPS_REWARD_ID;
+	public static int BPS_REWARD_AMOUNT;
+
 	/** Misc */
 	public static boolean L2WALKER_PROTECTION;
 	public static boolean SERVER_NEWS;
@@ -1022,7 +1041,26 @@ public final class Config
 		L2WALKER_PROTECTION = server.getProperty("L2WalkerProtection", false);
 		ZONE_TOWN = server.getProperty("ZoneTown", 0);
 		SERVER_NEWS = server.getProperty("ShowServerNews", false);
-	}
+
+        BPS_BOTS_PREVENTION = server.getProperty("EnableBotsPrevention", false);
+        BPS_ALLOW_INCORRECT_CHOICE = server.getProperty("AllowIncorrectChoice", false);
+        BPS_KILLS_COUNTER = server.getProperty("KillsCounter", 60);
+        BPS_KILLS_COUNTER_RANDOMIZATION = server.getProperty("KillsCounterRandomization", 50);
+        BPS_VALIDATION_TIME = server.getProperty("ValidationTime", 60);
+        BPS_PUNISHMENT = server.getProperty("Punishment", 0);
+        BPS_PUNISHMENT_TIME = server.getProperty("PunishmentTime", 60);
+
+        BPS_CHECK_BISHOPS = server.getProperty("Bishops", false);
+        BPS_CHECK_ELDERS = server.getProperty("Elders", false);
+        BPS_CHECK_PROPHETS = server.getProperty("Prophets", false);
+        BPS_CHECK_BLADEDANCERS = server.getProperty("Bladedancers", false);
+        BPS_CHECK_SWORDSINGERS = server.getProperty("Swordsingers", false);
+        BPS_CHECK_WARCRYERS = server.getProperty("Warcryers", false);
+        BPS_CHECK_OVERLORDS = server.getProperty("Overlords", false);
+        BPS_ENABLE_REWARD = server.getProperty("Rewards", false);
+        BPS_REWARD_ID = server.getProperty("Item", 0);
+        BPS_REWARD_AMOUNT = server.getProperty("Amount", 0);
+    }
 	
 	/**
 	 * Loads loginserver settings.<br>

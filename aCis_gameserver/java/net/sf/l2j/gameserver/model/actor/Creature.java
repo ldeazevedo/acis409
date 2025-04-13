@@ -40,6 +40,7 @@ import net.sf.l2j.gameserver.model.actor.move.CreatureMove;
 import net.sf.l2j.gameserver.model.actor.status.CreatureStatus;
 import net.sf.l2j.gameserver.model.actor.template.CreatureTemplate;
 import net.sf.l2j.gameserver.model.actor.template.NpcTemplate;
+import net.sf.l2j.gameserver.model.botprevention.BotsPreventionManager;
 import net.sf.l2j.gameserver.model.group.Party;
 import net.sf.l2j.gameserver.model.item.instance.ItemInstance;
 import net.sf.l2j.gameserver.model.item.kind.Item;
@@ -505,6 +506,10 @@ public abstract class Creature extends WorldObject
 		stopAllEffectsExceptThoseThatLastThroughDeath();
 		
 		calculateRewards(killer);
+		if (Config.BPS_BOTS_PREVENTION)
+		{
+			BotsPreventionManager.getInstance().onCreatureKill(killer, this);
+		}
 		
 		// Send the Server->Client packet StatusUpdate with current HP and MP to all other Player to inform
 		getStatus().broadcastStatusUpdate();

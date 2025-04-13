@@ -88,6 +88,10 @@ public final class NpcHtmlMessage extends L2GameServerPacket
 		_html = text;
 	}
 	
+	public String getHtml() {
+		return _html;
+	}
+	
 	public void setFile(String filename)
 	{
 		// Avoid to generate file directory if config is off.

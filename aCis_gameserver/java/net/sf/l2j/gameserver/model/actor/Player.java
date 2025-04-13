@@ -120,6 +120,7 @@ import net.sf.l2j.gameserver.model.actor.move.PlayerMove;
 import net.sf.l2j.gameserver.model.actor.status.PlayerStatus;
 import net.sf.l2j.gameserver.model.actor.template.PetTemplate;
 import net.sf.l2j.gameserver.model.actor.template.PlayerTemplate;
+import net.sf.l2j.gameserver.model.botprevention.BotsPreventionManager;
 import net.sf.l2j.gameserver.model.craft.ManufactureList;
 import net.sf.l2j.gameserver.model.group.CommandChannel;
 import net.sf.l2j.gameserver.model.group.Party;
@@ -253,6 +254,7 @@ public final class Player extends Playable
 	private static final String UPDATE_CHAR_RECOM_LEFT = "UPDATE characters SET rec_left=? WHERE obj_Id=?";
 	
 	private static final String UPDATE_NOBLESS = "UPDATE characters SET nobless=? WHERE obj_Id=?";
+	private static final String UPDATE_LOCATION = "UPDATE characters SET x=?,y=?,z=? WHERE obj_id=?";
 	
 	public static final int REQUEST_TIMEOUT = 15;
 	
@@ -5590,6 +5592,25 @@ public final class Player extends Playable
 		}
 	}
 	
+	public void teleportToOffline(RestartType type)
+	{
+		var loc = RestartPointData.getInstance().getLocationToTeleport(this, RestartType.CASTLE);
+		
+		try (Connection con = ConnectionPool.getConnection();
+			PreparedStatement ps = con.prepareStatement(UPDATE_LOCATION))
+		{
+			ps.setInt(1, loc.getX());
+			ps.setInt(2, loc.getY());
+			ps.setInt(3, loc.getZ());
+			ps.setInt(4, getObjectId());
+			ps.executeUpdate();
+		}
+		catch (final Exception e)
+		{
+			LOGGER.error("Couldn't update location for {}.", e, getName());
+		}
+	}
+	
 	public void setLvlJoinedAcademy(int lvl)
 	{
 		_lvlJoinedAcademy = lvl;
@@ -6320,6 +6341,9 @@ public final class Player extends Playable
 			
 			// Remove the Player from the world
 			decayMe();
+			
+			//handle logout 
+			BotsPreventionManager.getInstance().onLogout(this);
 			
 			// If a party is in progress, leave it
 			if (_party != null)
