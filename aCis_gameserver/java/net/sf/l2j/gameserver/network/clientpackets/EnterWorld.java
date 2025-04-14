@@ -20,6 +20,7 @@ import net.sf.l2j.gameserver.enums.ZoneId;
 import net.sf.l2j.gameserver.enums.actors.ClassRace;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.Player;
+import net.sf.l2j.gameserver.model.botprevention.BotsPreventionManager;
 import net.sf.l2j.gameserver.model.holder.IntIntHolder;
 import net.sf.l2j.gameserver.model.olympiad.Olympiad;
 import net.sf.l2j.gameserver.model.pledge.Clan;
@@ -272,6 +273,8 @@ public class EnterWorld extends L2GameClientPacket
 		final QuestState qs = player.getQuestList().getQuestState("Tutorial");
 		if (qs != null)
 			qs.getQuest().notifyEvent("UC", null, player);
+
+		BotsPreventionManager.getInstance().onLogin(player);
 		
 		player.sendPacket(ActionFailed.STATIC_PACKET);
 	}

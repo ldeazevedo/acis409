@@ -23,6 +23,7 @@ import net.sf.l2j.gameserver.data.sql.ServerMemoTable;
 import net.sf.l2j.gameserver.data.xml.ScriptData;
 import net.sf.l2j.gameserver.model.World;
 import net.sf.l2j.gameserver.model.actor.Player;
+import net.sf.l2j.gameserver.model.botprevention.BotsPreventionManager;
 import net.sf.l2j.gameserver.model.olympiad.Olympiad;
 import net.sf.l2j.gameserver.network.GameClient;
 import net.sf.l2j.gameserver.network.SystemMessageId;
@@ -173,6 +174,8 @@ public class Shutdown extends Thread
 			
 			// Store the actual server state.
 			ServerMemoTable.getInstance().set("server_crash", false);
+
+			BotsPreventionManager.getInstance().cleanUp();
 			
 			try
 			{
