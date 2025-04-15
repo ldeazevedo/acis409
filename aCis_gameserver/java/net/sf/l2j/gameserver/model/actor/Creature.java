@@ -174,7 +174,7 @@ public abstract class Creature extends WorldObject
 		if (!isGM())
 		{
 			final Player player = target.getActingPlayer();
-			if (player != null && !player.getAppearance().isVisible())
+			if (player != null && !player.getAppearance().isVisible() || getInstanceId() != target.getInstanceId())
 				return false;
 		}
 		

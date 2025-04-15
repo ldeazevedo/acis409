@@ -32,7 +32,7 @@ public class TargetCorpseAlly implements ITargetHandler
 			for (Player targetPlayer : player.getKnownTypeInRadius(Player.class, skill.getSkillRadius(), p -> p.isDead()))
 			{
 				// Target isn't a clan or alliance member, ignore it.
-				if (!targetPlayer.isInSameClan(player) && !targetPlayer.isInSameAlly(player))
+				if (!targetPlayer.isInSameClan(player) && !targetPlayer.isInSameAlly(player) || caster.getInstanceId() != target.getInstanceId())
 					continue;
 				
 				// Target isn't sharing same Duel team, ignore it.

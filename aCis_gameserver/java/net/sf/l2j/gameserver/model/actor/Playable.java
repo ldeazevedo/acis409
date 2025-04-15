@@ -385,7 +385,7 @@ public abstract class Playable extends Creature
 		final Player targetPlayer = target.getActingPlayer();
 		
 		// No cast upon self/owner.
-		if (targetPlayer == getActingPlayer())
+		if (targetPlayer == getActingPlayer() || getInstanceId() != targetPlayer.getInstanceId())
 			return false;
 		
 		// No checks for players in Olympiad.
@@ -474,6 +474,9 @@ public abstract class Playable extends Creature
 			
 			if (isInsideZone(ZoneId.PVP))
 				return true;
+			
+			if (getActingPlayer().getInstanceId() != attacker.getInstanceId())
+				return false;
 			
 			// One cannot be attacked if any of the two has Blessing of Protection and the other is >=10 levels higher and is PK
 			if (getProtectionBlessing() && (attackerPlayable.getStatus().getLevel() - getStatus().getLevel() >= 10) && attackerPlayable.getKarma() > 0)

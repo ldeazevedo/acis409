@@ -37,6 +37,7 @@ import net.sf.l2j.gameserver.data.manager.CoupleManager;
 import net.sf.l2j.gameserver.data.manager.CursedWeaponManager;
 import net.sf.l2j.gameserver.data.manager.FestivalOfDarknessManager;
 import net.sf.l2j.gameserver.data.manager.HeroManager;
+import net.sf.l2j.gameserver.data.manager.InstanceManager;
 import net.sf.l2j.gameserver.data.manager.PartyMatchRoomManager;
 import net.sf.l2j.gameserver.data.manager.RelationManager;
 import net.sf.l2j.gameserver.data.manager.SevenSignsManager;
@@ -122,6 +123,7 @@ import net.sf.l2j.gameserver.model.actor.template.PetTemplate;
 import net.sf.l2j.gameserver.model.actor.template.PlayerTemplate;
 import net.sf.l2j.gameserver.model.botprevention.BotsPreventionManager;
 import net.sf.l2j.gameserver.model.craft.ManufactureList;
+import net.sf.l2j.gameserver.model.entity.Instance;
 import net.sf.l2j.gameserver.model.group.CommandChannel;
 import net.sf.l2j.gameserver.model.group.Party;
 import net.sf.l2j.gameserver.model.group.PartyMatchRoom;
@@ -2020,6 +2022,8 @@ public final class Player extends Playable
 			
 			return false;
 		}
+
+		item.setInstanceId(getInstanceId());
 		
 		item.dropMe(this, 25);
 		
@@ -2049,6 +2053,8 @@ public final class Player extends Playable
 			
 			return null;
 		}
+
+		item.setInstanceId(getInstanceId());
 		
 		item.dropMe(this, x, y, z);
 		
@@ -6023,6 +6029,13 @@ public final class Player extends Playable
 		
 		if (isMounted())
 			startFeed(_mountNpcId);
+		
+		if (getInstanceId() > 0)
+		{
+			final Instance instance = InstanceManager.getInstance(getInstanceId());
+			if (instance != null)
+				instance.cancelEjectDeadPlayer(this);
+		}
 	}
 	
 	@Override
@@ -6401,6 +6414,35 @@ public final class Player extends Playable
 			
 			// friends & blocklist update
 			RelationManager.getInstance().notifyFriends(this, false);
+			// remove player from instance and set spawn location if any
+			try
+			{
+				final int instanceId = getInstanceId();
+				if ((instanceId != 0))
+				{
+					final Instance inst = InstanceManager.getInstance(instanceId);
+					if (inst != null)
+					{
+						inst.removePlayer(getObjectId());
+						final Location loc = inst.getExitLoc();
+						if (loc != null)
+						{
+							final int x = loc.getX() + Rnd.get(-30, 30);
+							final int y = loc.getY() + Rnd.get(-30, 30);
+							setXYZInvisible(x, y, loc.getZ());
+							if (getSummon() != null) // dead pet
+							{
+								getSummon().teleportTo(loc, /*true*/ 20);
+								getSummon().setInstanceId(0);
+							}
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				LOGGER.error("deleteMe() {}", e);
+			}
 			
 			World.getInstance().removePlayer(this); // force remove in case of crash during teleport
 		}

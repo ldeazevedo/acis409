@@ -57,6 +57,8 @@ public class Servitor extends Summon
 		else
 			_nextItemConsumeTime = _totalLifeTime - _totalLifeTime / (_itemConsumeSteps + 1);
 		
+        setInstanceId(getOwner().getInstanceId()); // set instance to same as owner
+		
 		_summonLifeTask = ThreadPool.scheduleAtFixedRate(this::processLifeTime, 1000, 1000);
 	}
 	

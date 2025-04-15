@@ -157,7 +157,8 @@ public class L2SkillSummon extends L2Skill
 				summon = new Servitor(IdFactory.getInstance().getNextId(), summonTemplate, player, this);
 			
 			player.setSummon(summon);
-			
+
+			summon.setInstanceId(player.getInstanceId());
 			summon.setName(summonTemplate.getName());
 			summon.setTitle(player.getName());
 			summon.setExpPenalty(_expPenalty);

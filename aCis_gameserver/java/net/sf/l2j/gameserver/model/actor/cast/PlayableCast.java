@@ -85,6 +85,9 @@ public class PlayableCast<T extends Playable> extends CreatureCast<T>
 			return false;
 		}
 		
+		if (player.getInstanceId() != target.getInstanceId())
+			return false;
+		
 		if (skill.getItemConsumeId() > 0)
 		{
 			final ItemInstance requiredItems = player.getInventory().getItemByItemId(skill.getItemConsumeId());

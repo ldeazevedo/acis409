@@ -185,6 +185,9 @@ public class MathUtil
 		if (obj1 == null || obj2 == null)
 			return false;
 		
+		if (obj1.getInstanceId() != obj2.getInstanceId())
+			return false;
+		
 		// If range is -1, return true (indicating no range limitation).
 		if (range == -1)
 			return true;

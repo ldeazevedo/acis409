@@ -44,6 +44,7 @@ public abstract class ASpawn
 	protected SpawnMemo _aiParams = SpawnMemo.DUMMY_SET;
 	
 	protected SpawnData _spawnData;
+	private int _instanceId = 0;
 	
 	protected ASpawn(int id) throws SecurityException, ClassNotFoundException, NoSuchMethodException, InvalidClassException
 	{
@@ -251,6 +252,8 @@ public abstract class ASpawn
 			// Assign the clan ID, if any.
 			if (clanId != null)
 				npc.setClanId(clanId);
+			//((WorldObject)npc).setInstanceId(_instanceId); // Must be done before object is spawned into visible world
+			npc.setInstanceId(_instanceId);
 			
 			// Assign ASpawn to Npc instance, set summon animation.
 			npc.setSpawn(this);
@@ -483,5 +486,10 @@ public abstract class ASpawn
 	public void setDBLoaded(boolean value)
 	{
 		_dbLoaded = value;
+	}
+	
+    public void setInstanceId(int instanceId)
+	{
+		_instanceId = instanceId;
 	}
 }

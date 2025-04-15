@@ -35,7 +35,7 @@ public class TargetCorpsePet implements ITargetHandler
 	@Override
 	public boolean meetCastConditions(Playable caster, Creature target, L2Skill skill, boolean isCtrlPressed)
 	{
-		if (!target.isDead())
+		if (!target.isDead() || caster.getInstanceId() != target.getInstanceId())
 		{
 			caster.sendPacket(SystemMessageId.INVALID_TARGET);
 			return false;

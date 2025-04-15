@@ -50,7 +50,7 @@ public class Pdam implements ISkillHandler
 			if (!(target instanceof Creature targetCreature))
 				continue;
 			
-			if (targetCreature.isDead())
+			if (targetCreature.isDead() || targetCreature.getInstanceId() != creature.getInstanceId())
 				continue;
 			
 			if (target instanceof Playable && ArraysUtil.contains(EffectFear.DOESNT_AFFECT_PLAYABLE, skill.getId()))

@@ -55,7 +55,7 @@ public class Disablers implements ISkillHandler
 				continue;
 			
 			// Bypass if target is dead or invul (excluding invul from Petrification)
-			if (targetCreature.isDead() || (targetCreature.isInvul() && !targetCreature.isParalyzed()))
+			if (targetCreature.isDead() || (targetCreature.isInvul() && !targetCreature.isParalyzed()) || creature.getInstanceId() != targetCreature.getInstanceId())
 				continue;
 			
 			if (skill.isOffensive() && targetCreature.getFirstEffect(EffectType.BLOCK_DEBUFF) != null)

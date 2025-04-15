@@ -33,7 +33,7 @@ public class CpDamPercent implements ISkillHandler
 			if (!(obj instanceof Player targetPlayer))
 				continue;
 			
-			if (targetPlayer.isDead() || targetPlayer.isInvul())
+			if (targetPlayer.isDead() || targetPlayer.isInvul() || targetPlayer.getInstanceId() != creature.getInstanceId())
 				continue;
 			
 			final ShieldDefense sDef = Formulas.calcShldUse(creature, targetPlayer, skill, false);

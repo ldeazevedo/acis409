@@ -30,7 +30,7 @@ public class TargetClan implements ITargetHandler
 			list.add(caster);
 			for (Attackable targetAttackable : caster.getKnownTypeInRadius(Attackable.class, skill.getSkillRadius()))
 			{
-				if (targetAttackable.isDead() || !ArraysUtil.contains(attackable.getTemplate().getClans(), targetAttackable.getTemplate().getClans()))
+				if (targetAttackable.isDead() || !ArraysUtil.contains(attackable.getTemplate().getClans(), targetAttackable.getTemplate().getClans()) || caster.getInstanceId() != target.getInstanceId())
 					continue;
 				
 				list.add(targetAttackable);

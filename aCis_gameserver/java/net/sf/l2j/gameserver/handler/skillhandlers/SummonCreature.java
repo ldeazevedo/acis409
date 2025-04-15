@@ -71,6 +71,7 @@ public class SummonCreature implements ISkillHandler
 		spawnLoc.addStrictOffset(40);
 		spawnLoc.setHeadingTo(creature.getPosition());
 		spawnLoc.set(GeoEngine.getInstance().getValidLocation(creature, spawnLoc));
+		pet.setInstanceId(player.getInstanceId());
 		
 		pet.spawnMe(spawnLoc);
 		pet.getAI().setFollowStatus(true);

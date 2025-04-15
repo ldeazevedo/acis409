@@ -10,13 +10,18 @@ import java.util.function.Predicate;
 import net.sf.l2j.commons.logging.CLogger;
 import net.sf.l2j.commons.math.MathUtil;
 
+import net.sf.l2j.gameserver.data.manager.InstanceManager;
 import net.sf.l2j.gameserver.enums.ZoneId;
 import net.sf.l2j.gameserver.enums.items.ShotType;
 import net.sf.l2j.gameserver.idfactory.IdFactory;
 import net.sf.l2j.gameserver.model.actor.Creature;
+import net.sf.l2j.gameserver.model.actor.Npc;
 import net.sf.l2j.gameserver.model.actor.Playable;
 import net.sf.l2j.gameserver.model.actor.Player;
+import net.sf.l2j.gameserver.model.actor.instance.Door;
+import net.sf.l2j.gameserver.model.actor.instance.Fence;
 import net.sf.l2j.gameserver.model.boat.BoatItinerary;
+import net.sf.l2j.gameserver.model.entity.Instance;
 import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.location.SpawnLocation;
 import net.sf.l2j.gameserver.model.zone.type.subtype.ZoneType;
@@ -36,6 +41,8 @@ public abstract class WorldObject
 	private WorldRegion _region;
 	
 	private boolean _isVisible;
+
+	private int _instanceId = 0;
 	
 	protected WorldObject(int objectId)
 	{
@@ -387,7 +394,7 @@ public abstract class WorldObject
 				// Update all objects.
 				region.getObjects().forEach(o ->
 				{
-					if (o == this)
+					if (o == this || getInstanceId() != o.getInstanceId())
 						return;
 					
 					o.removeKnownObject(this);
@@ -412,7 +419,7 @@ public abstract class WorldObject
 				// Update all objects.
 				region.getObjects().forEach(o ->
 				{
-					if (o == this)
+					if (o == this || getInstanceId() != o.getInstanceId())
 						return;
 					
 					o.addKnownObject(this);
@@ -426,6 +433,12 @@ public abstract class WorldObject
 		}
 		
 		_region = newRegion;
+		
+		for (WorldObject object : getDifferentInstanceObjects())
+		{
+			object.removeKnownObject(this);
+			removeKnownObject(object);
+		}
 	}
 	
 	/**
@@ -483,7 +496,10 @@ public abstract class WorldObject
 		final List<A> result = new ArrayList<>();
 		
 		// Collect the objects of the specified type.
-		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o, result::add));
+		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o && o.getInstanceId() == getInstanceId() && !(o instanceof Door || o instanceof Fence), result::add
+    )
+);
+
 		
 		return result;
 	}
@@ -500,7 +516,7 @@ public abstract class WorldObject
 		if (region == null)
 			return;
 		
-		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o, action));
+		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o && o.getInstanceId() == getInstanceId() && !(o instanceof Door || o instanceof Fence), action));
 	}
 	
 	/**
@@ -516,7 +532,7 @@ public abstract class WorldObject
 		if (region == null)
 			return;
 		
-		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o && filter.test(o), action));
+		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o && filter.test(o) && o.getInstanceId() == getInstanceId() && !(o instanceof Door || o instanceof Fence), action));
 	}
 	
 	/**
@@ -534,7 +550,7 @@ public abstract class WorldObject
 		
 		final List<A> result = new ArrayList<>();
 		
-		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o && filter.test(o), result::add));
+		region.forEachSurroundingRegion(r -> r.forEachType(type, o -> this != o && filter.test(o) && o.getInstanceId() == getInstanceId() && !(o instanceof Door || o instanceof Fence), result::add));
 		
 		return result;
 	}
@@ -835,5 +851,76 @@ public abstract class WorldObject
 	public void onInteract(Player player)
 	{
 		
+	}
+	
+	private List<WorldObject> getDifferentInstanceObjects()
+	{
+		final WorldRegion region = _region;
+		if (region == null)
+			return Collections.emptyList();
+
+		final List<WorldObject> result = new ArrayList<>();
+
+		for (WorldRegion reg : region.getSurroundingRegions())
+		{
+			for (WorldObject obj : reg.getObjects())
+			{
+				if (obj == this || obj.getInstanceId() == getInstanceId() || obj instanceof Door || obj instanceof Fence)
+					continue;
+
+				result.add(obj);
+			}
+		}
+
+		region.addVisibleObject(this);
+
+		return result;
+	}
+
+	public int getInstanceId()
+	{
+		return _instanceId;
+	}
+
+	public void setInstanceId(int instanceId)
+	{
+		if (_instanceId == instanceId)
+			return;
+
+		if (instanceId != 0)
+			LOGGER.info(getName()+ " WorldObject : " + instanceId);
+		if (_instanceId != 0)
+			LOGGER.info(getName()+ " WorldObject : " + _instanceId);
+		Instance oldI = InstanceManager.getInstance(_instanceId);
+		Instance newI = InstanceManager.getInstance(instanceId);
+
+		if (this instanceof Player && oldI != null && newI != null)
+		{
+			if (_instanceId > 0)
+				oldI.removePlayer(getObjectId());
+			if (instanceId > 0)
+				newI.addPlayer(getObjectId());
+		}
+		else if (this instanceof Npc && oldI != null && newI != null)
+		{
+			if (_instanceId > 0)
+				oldI.removeNpc(((Npc)this));
+			if (instanceId > 0)
+				newI.addNpc(((Npc)this));
+		}
+		if (_instanceId != instanceId)
+		{
+			_instanceId = instanceId;
+			if (this instanceof Player)
+			{
+				if (((Player)this).getSummon() != null)
+					((Player)this).getSummon().setInstanceId(instanceId);
+				
+	//			if (((Player)this).getAgathion() != null)
+	//				((Player)this).getAgathion().setInstanceId(instanceId);
+			}
+			decayMe();
+			spawnMe();
+		}
 	}
 }

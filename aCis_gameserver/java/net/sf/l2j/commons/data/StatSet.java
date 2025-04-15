@@ -617,4 +617,16 @@ public class StatSet extends HashMap<String, Object>
 		final int id = getInteger(name, 0);
 		return (id > 0) ? NpcStringId.get(id) : defaultValue;
 	}
+	
+	private Map<String, Object> _set;
+	
+ 	public void add(StatSet newSet)
+ 	{
+ 		_set.putAll(newSet.getSet());
+ 	}
+ 	
+ 	public final Map<String, Object> getSet()
+ 	{
+ 		return _set;
+ 	}
 }

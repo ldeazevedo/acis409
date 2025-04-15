@@ -391,7 +391,7 @@ public class Cubic
 	
 	private void useMdamSkill(L2Skill skill, Creature target)
 	{
-		if (target.isDead())
+		if (target.isDead() || target.getInstanceId() != getOwner().getInstanceId())
 			return;
 		
 		final boolean isCrit = Formulas.calcMCrit(getOwner(), target, skill);
@@ -429,7 +429,7 @@ public class Cubic
 	
 	private void useContinuousSkill(L2Skill skill, Creature target)
 	{
-		if (target.isDead())
+		if (target.isDead() || target.getInstanceId() != getOwner().getInstanceId())
 			return;
 		
 		if (skill.isOffensive())
@@ -450,7 +450,7 @@ public class Cubic
 	
 	private void useDrainSkill(L2SkillDrain skill, Creature target)
 	{
-		if (target.isAlikeDead() && skill.getTargetType() != SkillTargetType.CORPSE_MOB)
+		if (target.isAlikeDead() && skill.getTargetType() != SkillTargetType.CORPSE_MOB || target.getInstanceId() != getOwner().getInstanceId())
 			return;
 		
 		final boolean isCrit = Formulas.calcMCrit(getOwner(), target, skill);

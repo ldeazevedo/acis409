@@ -40,7 +40,7 @@ public class TargetCorpseMob implements ITargetHandler
 	{
 		// Verify if a corpse exists. Can't do anything on Pets.
 		final Long time = DecayTaskManager.getInstance().get(target);
-		if (time == null || target instanceof Pet)
+		if (time == null || target instanceof Pet || caster.getInstanceId() != target.getInstanceId())
 		{
 			caster.sendPacket(SystemMessageId.INVALID_TARGET);
 			return false;

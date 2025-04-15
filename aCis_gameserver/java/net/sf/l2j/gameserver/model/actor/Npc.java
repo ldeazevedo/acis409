@@ -2254,7 +2254,8 @@ public class Npc extends Creature
 			// If the tested Creature is either a Playable or Player, set the drop protection.
 			if (creature.getActingPlayer() != null)
 				item.setDropProtection(creature.getObjectId(), isRaidBoss());
-			
+
+			item.setInstanceId(getInstanceId());
 			item.dropMe(this, 70);
 			
 			// If stackable, end loop as entire count is included in 1 instance of item.

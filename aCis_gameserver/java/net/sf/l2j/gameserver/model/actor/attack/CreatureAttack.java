@@ -74,7 +74,7 @@ public class CreatureAttack<T extends Creature>
 	 */
 	public boolean canAttack(Creature target)
 	{
-		if (_actor.isAttackingDisabled())
+		if (_actor.isAttackingDisabled() || _actor.getInstanceId() != target.getInstanceId())
 			return false;
 		
 		if (_actor.isMovementDisabled() && !_actor.isIn2DRadius(target, (int) (_actor.getStatus().getPhysicalAttackRange() + _actor.getCollisionRadius() + target.getCollisionRadius() + (target.isMoving() ? 60 : 10))))
@@ -230,6 +230,8 @@ public class CreatureAttack<T extends Creature>
 			if (target instanceof Player)
 				target.sendPacket(SystemMessage.getSystemMessage(SystemMessageId.AVOIDED_S1_ATTACK).addCharName(_actor));
 		}
+		if (_actor.getInstanceId() != target.getInstanceId())
+			return;
 		
 		_actor.sendDamageMessage(target, hitHolder._damage, false, hitHolder._crit, hitHolder._miss);
 		
@@ -311,7 +313,9 @@ public class CreatureAttack<T extends Creature>
 		final int timeAtk = Formulas.calculateTimeBetweenAttacks(_actor);
 		final Weapon weaponItem = _actor.getActiveWeaponItem();
 		final boolean isSoulshot = _actor.isChargedShot(ShotType.SOULSHOT);
-		
+
+		if (_actor.getInstanceId() != target.getInstanceId())
+			return;
 		_actor.getPosition().setHeadingTo(target);
 		
 		HitHolder[] hits;

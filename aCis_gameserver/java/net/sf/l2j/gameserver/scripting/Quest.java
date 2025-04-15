@@ -810,6 +810,11 @@ public class Quest
 	 */
 	public Npc addSpawn(int npcId, int x, int y, int z, int heading, boolean randomOffset, long despawnDelay, boolean isSummonSpawn)
 	{
+		return addSpawn(npcId, x, y, z, heading, randomOffset, despawnDelay, isSummonSpawn, 0);
+	}
+	
+	public Npc addSpawn(int npcId, int x, int y, int z, int heading, boolean randomOffset, long despawnDelay, boolean isSummonSpawn, int instance)
+	{
 		try
 		{
 			// Get NPC template.
@@ -836,6 +841,7 @@ public class Quest
 			// Create spawn.
 			final Spawn spawn = new Spawn(template);
 			spawn.setLoc(x, y, z + 20, heading);
+			spawn.setInstanceId(instance);
 			
 			// Spawn NPC.
 			final Npc npc = spawn.doSpawn(isSummonSpawn);
@@ -850,6 +856,7 @@ public class Quest
 			return null;
 		}
 	}
+	
 	
 	/**
 	 * Instantly spawn a {@link Npc} based on npcId parameter, near another {@link Npc} which is considered its master.
@@ -2395,6 +2402,30 @@ public class Quest
 		// Overidden on each script.
 	}
 	
+	/**
+ 	 * Teleport a player into/out of an instance.
+ 	 * @param player the player to teleport
+ 	 * @param loc the {@link Location} object containing the destination coordinates
+ 	 * @param instanceId the ID of the instance to teleport the player to (0 to teleport out of an instance)
+ 	 */
+ 	public void teleportPlayer(Player player, Location loc, int instanceId)
+ 	{
+ 		teleportPlayer(player, loc, instanceId, true);
+ 	}
+ 	
+ 	/**
+ 	 * Teleport a player into/out of an instance.
+ 	 * @param player the player to teleport
+ 	 * @param loc the {@link Location} object containing the destination coordinates
+ 	 * @param instanceId the ID of the instance to teleport the player to (0 to teleport out of an instance)
+ 	 * @param allowRandomOffset if {@code true}, will randomize the teleport coordinates by +/- MaxOffsetOnTeleport
+ 	 */
+ 	public void teleportPlayer(Player player, Location loc, int instanceId, boolean allowRandomOffset)
+ 	{
+ 		player.setInstanceId(instanceId);
+ 		player.teleportTo(loc, allowRandomOffset ? 20 : 0);
+ 	}
+ 	
 	/**
 	 * Use Reflection to feed {@link EventHandler}s.
 	 */

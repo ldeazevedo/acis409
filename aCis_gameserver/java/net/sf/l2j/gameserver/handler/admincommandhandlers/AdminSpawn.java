@@ -194,6 +194,7 @@ public class AdminSpawn implements IAdminCommandHandler
 				{
 					final Spawn spawn = new Spawn(template);
 					spawn.setLoc(targetWorldObject.getPosition());
+					spawn.setInstanceId(player.getInstanceId());
 					spawn.setRespawnDelay(respawnTime);
 					spawn.doSpawn(false);
 					

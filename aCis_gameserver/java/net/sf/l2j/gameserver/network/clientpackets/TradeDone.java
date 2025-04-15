@@ -55,6 +55,12 @@ public final class TradeDone extends L2GameClientPacket
 			return;
 		}
 		
+		if (player.getInstanceId() != trade.getPartner().getInstanceId())
+		{
+			player.cancelActiveTrade();
+			return;
+		}
+		
 		// Cancel active enchant for trade partner.
 		partner.cancelActiveEnchant();
 		

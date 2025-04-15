@@ -36,7 +36,7 @@ public class Mdam implements ISkillHandler
 			if (!(target instanceof Creature targetCreature))
 				continue;
 			
-			if (targetCreature.isDead())
+			if (targetCreature.isDead() || targetCreature.getInstanceId() != creature.getInstanceId())
 				continue;
 			
 			final boolean isCrit = Formulas.calcMCrit(creature, targetCreature, skill);
