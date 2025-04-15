@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.logging.LogManager;
 
+import com.atiq.L2API;
 import net.sf.l2j.commons.lang.StringUtil;
 import net.sf.l2j.commons.logging.CLogger;
 import net.sf.l2j.commons.mmocore.SelectorConfig;
@@ -313,6 +314,8 @@ public class GameServer
 			System.exit(1);
 		}
 		_selectorThread.start();
+
+		L2API.init();
 	}
 	
 	public SelectorThread<GameClient> getSelectorThread()
