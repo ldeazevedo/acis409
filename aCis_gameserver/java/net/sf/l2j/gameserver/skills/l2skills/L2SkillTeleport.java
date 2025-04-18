@@ -9,6 +9,8 @@ import net.sf.l2j.gameserver.enums.items.ShotType;
 import net.sf.l2j.gameserver.model.WorldObject;
 import net.sf.l2j.gameserver.model.actor.Creature;
 import net.sf.l2j.gameserver.model.actor.Player;
+import net.sf.l2j.gameserver.model.events.EventManager;
+import net.sf.l2j.gameserver.model.events.tvt.TvTEvent;
 import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.skills.L2Skill;
 
@@ -29,7 +31,7 @@ public class L2SkillTeleport extends L2Skill
 	public void useSkill(Creature creature, WorldObject[] targets)
 	{
 		// Check invalid Player states.
-		if (creature instanceof Player player && (player.isAfraid() || player.isInOlympiadMode() || player.isInsideZone(ZoneId.BOSS)))
+		if (creature instanceof Player player && (player.isAfraid() || player.isInOlympiadMode() || player.isInsideZone(ZoneId.BOSS) || !TvTEvent.onEscapeUse(player.getObjectId()) || EventManager.getInstance().isInEvent(player)))
 			return;
 		
 		boolean bsps = creature.isChargedShot(ShotType.BLESSED_SPIRITSHOT);

@@ -923,4 +923,9 @@ public abstract class WorldObject
 			spawnMe();
 		}
 	}
+	
+	public void onActionShift(Player player)
+	{
+		player.sendPacket(ActionFailed.STATIC_PACKET);
+	}
 }

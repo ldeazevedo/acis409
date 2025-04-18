@@ -22,6 +22,8 @@ import net.sf.l2j.gameserver.model.actor.instance.SiegeGuard;
 import net.sf.l2j.gameserver.model.actor.status.PlayableStatus;
 import net.sf.l2j.gameserver.model.actor.template.CreatureTemplate;
 import net.sf.l2j.gameserver.model.entity.Duel;
+import net.sf.l2j.gameserver.model.events.EventManager;
+import net.sf.l2j.gameserver.model.events.RandomFightEngine;
 import net.sf.l2j.gameserver.model.group.CommandChannel;
 import net.sf.l2j.gameserver.model.group.Party;
 import net.sf.l2j.gameserver.model.item.instance.ItemInstance;
@@ -318,6 +320,15 @@ public abstract class Playable extends Creature
 		return isInsideZone(ZoneId.PVP) && !isInsideZone(ZoneId.SIEGE);
 	}
 	
+	/**
+	 * @param pc 
+	 * @return true if the Player is located in event.
+	 */
+	public static boolean isInEvent(Player pc)
+	{
+		return EventManager.getInstance().isInEvent(pc) || RandomFightEngine.getInstance().isInEvent(pc);
+	}
+	
 	public void addItemSkillTimeStamp(L2Skill itemSkill, ItemInstance itemInstance)
 	{
 		final EtcItem etcItem = itemInstance.getEtcItem();
@@ -411,7 +422,7 @@ public abstract class Playable extends Creature
 			return isCtrlDamagingTheMainTarget;
 		
 		// If the target not from the same CC/party/alliance/clan/SiegeSide is in a PVP area, you can do anything.
-		if (isInsideZone(ZoneId.PVP) && target.isInsideZone(ZoneId.PVP))
+		if (isInsideZone(ZoneId.PVP) && target.isInsideZone(ZoneId.PVP) || (isInEvent(targetPlayer) && isInEvent(getActingPlayer())))
 			return true;
 		
 		if (targetPlayer.getProtectionBlessing() && (getActingPlayer().getStatus().getLevel() - targetPlayer.getStatus().getLevel() >= 10) && getActingPlayer().getKarma() > 0)
@@ -472,7 +483,7 @@ public abstract class Playable extends Creature
 			if (getActingPlayer().isInOlympiadMode() && !getActingPlayer().isOlympiadStart())
 				return false;
 			
-			if (isInsideZone(ZoneId.PVP))
+			if (isInsideZone(ZoneId.PVP) || isInEvent(getActingPlayer()))
 				return true;
 			
 			if (getActingPlayer().getInstanceId() != attacker.getInstanceId())
@@ -507,6 +518,9 @@ public abstract class Playable extends Creature
 		
 		// No checks for players in Olympiad.
 		if (isInSameActiveOlympiadMatch(attackerPlayer))
+			return true;
+		
+		if (isInEvent(attackerPlayer) || isInEvent(getActingPlayer()))
 			return true;
 		
 		// No checks for players in Duel.

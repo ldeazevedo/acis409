@@ -3,6 +3,8 @@ package net.sf.l2j.gameserver.network.clientpackets;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
+import net.sf.l2j.commons.lang.StringUtil;
+
 import net.sf.l2j.Config;
 import net.sf.l2j.gameserver.communitybbs.CommunityBoard;
 import net.sf.l2j.gameserver.data.manager.HeroManager;
@@ -15,6 +17,8 @@ import net.sf.l2j.gameserver.model.WorldObject;
 import net.sf.l2j.gameserver.model.actor.Npc;
 import net.sf.l2j.gameserver.model.actor.Player;
 import net.sf.l2j.gameserver.model.actor.instance.OlympiadManagerNpc;
+import net.sf.l2j.gameserver.model.events.TextCommandHandler;
+import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.olympiad.OlympiadManager;
 import net.sf.l2j.gameserver.network.SystemMessageId;
 import net.sf.l2j.gameserver.network.serverpackets.ActionFailed;
@@ -55,7 +59,6 @@ public final class RequestBypassToServer extends L2GameClientPacket
 			{
 				if (player.isGM())
 					player.sendMessage("The command " + command.substring(6) + " doesn't exist.");
-				
 				return;
 			}
 			
@@ -70,6 +73,10 @@ public final class RequestBypassToServer extends L2GameClientPacket
 				GMAUDIT_LOG.info(player.getName() + " [" + player.getObjectId() + "] used '" + _command + "' command on: " + ((player.getTarget() != null) ? player.getTarget().getName() : "none"));
 			
 			ach.useAdminCommand(_command, player);
+		}
+		else if (_command.startsWith("shift_") || _command.startsWith("dressme_"))
+		{
+			TextCommandHandler.getInstance().bypass(player, _command);
 		}
 		else if (_command.startsWith("player_help "))
 		{
@@ -97,6 +104,22 @@ public final class RequestBypassToServer extends L2GameClientPacket
 			html.disableValidation();
 			player.sendPacket(html);
 		}
+		else if (_command.startsWith("instance_"))
+		{
+			final StringTokenizer st = new StringTokenizer(_command, " ");
+			st.nextToken();
+	
+			if (!st.hasMoreTokens())
+				return;
+		
+			final String param = st.nextToken();
+			if (StringUtil.isDigit(param))
+			{
+				final int id = Integer.parseInt(param);
+				player.setInstanceId(id);
+				player.enterObserverMode(new Location(149478, 46715, -3408));
+			}
+		}
 		else if (_command.startsWith("npc_"))
 		{
 			if (!player.validateBypass(_command))
@@ -112,6 +135,7 @@ public final class RequestBypassToServer extends L2GameClientPacket
 			try
 			{
 				final WorldObject object = World.getInstance().getObject(Integer.parseInt(id));
+				
 				if (object instanceof Npc npc && endOfId > 0 && player.getAI().canDoInteract(npc))
 					npc.onBypassFeedback(player, _command.substring(endOfId + 1));
 				

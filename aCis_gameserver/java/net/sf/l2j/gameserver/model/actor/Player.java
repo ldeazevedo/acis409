@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,6 +125,11 @@ import net.sf.l2j.gameserver.model.actor.template.PlayerTemplate;
 import net.sf.l2j.gameserver.model.botprevention.BotsPreventionManager;
 import net.sf.l2j.gameserver.model.craft.ManufactureList;
 import net.sf.l2j.gameserver.model.entity.Instance;
+import net.sf.l2j.gameserver.model.events.EventManager;
+import net.sf.l2j.gameserver.model.events.L2Event;
+import net.sf.l2j.gameserver.model.events.NewEventManager;
+import net.sf.l2j.gameserver.model.events.TextCommandHandler;
+import net.sf.l2j.gameserver.model.events.tvt.TvTEvent;
 import net.sf.l2j.gameserver.model.group.CommandChannel;
 import net.sf.l2j.gameserver.model.group.Party;
 import net.sf.l2j.gameserver.model.group.PartyMatchRoom;
@@ -332,7 +338,7 @@ public final class Player extends Playable
 	private boolean _isSittingNow;
 	private boolean _isStandingNow;
 	
-	private final Location _savedLocation = new Location(0, 0, 0);
+	private Location _savedLocation = new Location(0, 0, 0);
 	
 	private int _recomHave;
 	private int _recomLeft;
@@ -1577,21 +1583,26 @@ public final class Player extends Playable
 	 */
 	public void standUp()
 	{
-		_isStandingNow = true;
-		_isSitting = false;
-		
-		// Schedule a stand up task to wait for the animation to finish
-		ThreadPool.schedule(() ->
+		if (L2Event.active && eventSitForced)
+			sendMessage("A dark force beyond your mortal understanding makes your knees to shake when you try to stand up ...");
+		else
 		{
-			_isStandingNow = false;
-			_isStanding = true;
+			_isStandingNow = true;
+			_isSitting = false;
 			
-			getAI().notifyEvent(AiEventType.STOOD_UP, null, null);
+			// Schedule a stand up task to wait for the animation to finish
+			ThreadPool.schedule(() ->
+			{
+				_isStandingNow = false;
+				_isStanding = true;
+				
+				getAI().notifyEvent(AiEventType.STOOD_UP, null, null);
+				
+			}, 2500);
 			
-		}, 2500);
-		
-		// Broadcast the packet.
-		broadcastPacket(new ChangeWaitType(this, ChangeWaitType.WT_STANDING));
+			// Broadcast the packet.
+			broadcastPacket(new ChangeWaitType(this, ChangeWaitType.WT_STANDING));
+		}
 	}
 	
 	/**
@@ -2623,6 +2634,14 @@ public final class Player extends Playable
 		if (killer != null)
 		{
 			final Player pk = killer.getActingPlayer();
+
+			TvTEvent.onKill(killer, this);
+			
+			if (isInEvent && pk != null)
+				pk.kills.add(getName());
+
+			if (isInEvent(this) && isInEvent(pk) && EventManager.getInstance().onKill(this, pk) || NewEventManager.getInstance().onKill(this, pk))
+				return true;
 			
 			// Clear resurrect xp calculation
 			setExpBeforeDeath(0);
@@ -2686,7 +2705,7 @@ public final class Player extends Playable
 	
 	private void onDieDropItem(Creature killer)
 	{
-		if (killer == null)
+		if (isInEvent || killer == null)
 			return;
 		
 		final Player pk = killer.getActingPlayer();
@@ -2916,13 +2935,15 @@ public final class Player extends Playable
 		
 		// Calculate the xp loss.
 		long lostExp = 0;
-		
-		final int maxLevel = PlayerLevelData.getInstance().getMaxLevel();
-		if (lvl < maxLevel)
-			lostExp = Math.round((getStatus().getExpForLevel(lvl + 1) - getStatus().getExpForLevel(lvl)) * percentLost / 100);
-		else
-			lostExp = Math.round((getStatus().getExpForLevel(maxLevel) - getStatus().getExpForLevel(maxLevel - 1)) * percentLost / 100);
-		
+
+		if (!isInEvent)
+		{
+			final int maxLevel = PlayerLevelData.getInstance().getMaxLevel();
+			if (lvl < maxLevel)
+				lostExp = Math.round((getStatus().getExpForLevel(lvl + 1) - getStatus().getExpForLevel(lvl)) * percentLost / 100);
+			else
+				lostExp = Math.round((getStatus().getExpForLevel(maxLevel) - getStatus().getExpForLevel(maxLevel - 1)) * percentLost / 100);
+		}
 		// Get the xp before applying penalty.
 		setExpBeforeDeath(getStatus().getExp());
 		
@@ -4320,9 +4341,9 @@ public final class Player extends Playable
 			if (location.equals(Location.DUMMY_LOC))
 				location = (!isInObserverMode() ? getPosition() : _savedLocation);
 			
-			ps.setInt(13, location.getX());
-			ps.setInt(14, location.getY());
-			ps.setInt(15, location.getZ());
+			ps.setInt(13, _isInObserverMode ? _savedLocation.getX() : getX());
+			ps.setInt(14, _isInObserverMode ? _savedLocation.getY() : getY());
+			ps.setInt(15, _isInObserverMode ? _savedLocation.getZ() : getZ());
 			
 			ps.setLong(16, exp);
 			ps.setLong(17, getExpBeforeDeath());
@@ -5251,22 +5272,8 @@ public final class Player extends Playable
 		// Adena check.
 		if (loc.getCost() > 0 && !reduceAdena(loc.getCost(), true))
 			return;
-		
-		dropAllSummons();
-		
-		if (getParty() != null)
-			getParty().removePartyMember(this, MessageType.EXPELLED);
-		
-		standUp();
-		
-		_savedLocation.set(getPosition());
-		
-		setInvul(true);
-		getAppearance().setVisible(false);
-		setIsParalyzed(true);
-		
-		// Abort attack, cast and move.
-		abortAll(true);
+
+		enterObserverMode();
 		
 		teleportTo(loc, 0);
 		sendPacket(new ObserverStart(loc));
@@ -5290,6 +5297,7 @@ public final class Player extends Playable
 		// Don't override saved location if we jump from stadium to stadium.
 		if (!isInObserverMode())
 			_savedLocation.set(getPosition());
+		_isInObserverMode = true;
 		
 		setTarget(null);
 		setInvul(true);
@@ -5307,7 +5315,9 @@ public final class Player extends Playable
 		getAppearance().setVisible(true);
 		setInvul(false);
 		setIsParalyzed(false);
+		_isInObserverMode = false;
 		
+		setInstanceId(0);
 		sendPacket(new ObserverEnd(_savedLocation));
 		teleportTo(_savedLocation, 0);
 		
@@ -5330,6 +5340,7 @@ public final class Player extends Playable
 		
 		sendPacket(new ExOlympiadMode(0));
 		teleportTo(_savedLocation, 0);
+		_isInObserverMode = false;
 		
 		// Clear the location.
 		_savedLocation.clean();
@@ -5362,7 +5373,7 @@ public final class Player extends Playable
 	
 	public boolean isInObserverMode()
 	{
-		return !_isInOlympiadMode && !_savedLocation.equals(Location.DUMMY_LOC);
+		return /*(!_isInOlympiadMode && !_savedLocation.equals(Location.DUMMY_LOC)) || */_isInObserverMode;
 	}
 	
 	public TeleportMode getTeleportMode()
@@ -7217,5 +7228,145 @@ public final class Player extends Playable
 		getAI().tryToIdle();
 		setTarget(null);
 		sendPacket(ActionFailed.STATIC_PACKET);
+	}
+
+	/** Event parameters */
+	public int eventkarma;
+	public int eventpvpkills;
+	public int eventpkkills;
+	public String eventTitle;
+	public LinkedList<String> kills = new LinkedList<>();
+	public boolean eventSitForced = false;
+	private boolean isInEvent = false;
+	
+	public int countDMkills;
+	boolean _isInObserverMode = false;
+	
+	public void setLastLocation(Location _lastLocation)
+	{
+		_savedLocation = _lastLocation;
+	}
+	
+	public void enterObserverMode(Location loc)
+	{
+		enterObserverMode();
+
+		teleportTo(loc, 0);
+		sendPacket(new ObserverStart((ObserverLocation) loc));
+	}
+	
+	public void enterObserverMode(Location loc, int instanceId)
+	{
+		setInstanceId(instanceId);
+		enterObserverMode(loc);
+	}
+	
+	public void enterObserverMode()
+	{
+		dropAllSummons();
+		
+		if (getParty() != null)
+			getParty().removePartyMember(this, MessageType.EXPELLED);
+		
+		standUp();
+		
+		if (!isInObserverMode())
+			_savedLocation.set(getPosition());
+		_isInObserverMode = true;
+		
+		setInvul(true);
+		getAppearance().setVisible(false);
+		setIsParalyzed(true);
+		
+		// Abort attack, cast and move.
+		abortAll(true);
+	}
+	
+    private int pcBangPoint = 0;
+
+	private boolean isReadChat;
+    private boolean expOff = false;
+	
+	public void setReadChat(boolean a)
+	{
+		isReadChat = a;
+	}
+	
+	public boolean getReadChat()
+	{
+		return isReadChat;
+	}
+	
+	public boolean isInEvent()
+	{
+		return isInEvent;
+	}
+	
+	public void setIsInEvent(boolean event)
+	{
+		isInEvent = event;
+	}
+	
+    public boolean isExpOff()
+    {
+        return expOff;
+    }
+    
+    public void invertExpOff()
+    {
+        expOff = !expOff;
+        sendMessage(expOff ? "[Exp off] You dont get EXP from now." : "[Exp on] You get EXP from now."); // | A partir de ahora no obtenes EXP. | A partir de ahora obtenes EXP.
+    }
+    
+    public void updatePcBangScore(int amount)
+    {
+        pcBangPoint += amount;
+  //TODO      sendPacket(new ExPCCafePointInfo(this, amount, amount > 0, 1000, false));
+        if (amount > 0)
+            sendPacket(SystemMessage.getSystemMessage(SystemMessageId.ACQUIRED_S1_PCPOINT).addNumber(amount));
+    }
+    
+    
+    public int getPcBangScore()
+    {
+        return pcBangPoint;
+    }
+    
+    public void showPcBangWindow()
+    {
+      //TODO  sendPacket(new ExPCCafePointInfo(this, 0, false, 1000, false));
+    }
+    
+    public void loadPcBangPoints()
+    {
+        try (Connection con = ConnectionPool.getConnection();
+        	PreparedStatement statement = con.prepareStatement("SELECT points FROM character_pccafe_points WHERE (objectId=?)"))
+        {
+        	statement.setInt(1, getObjectId());
+            try (ResultSet rset = statement.executeQuery())
+            {
+            	while (rset.next())
+            		updatePcBangScore(rset.getInt("points"));
+            }
+        }
+        catch (final Exception e)
+        {
+			LOGGER.warn("Could not restore Pc Bang data: " + e);
+        }
+    }
+    public Player getShiftTarget()
+    {
+    	return TextCommandHandler.getShiftTarget();
+    }
+    
+	@Override
+	public void onActionShift(Player player)
+	{
+		if (isDead() && player.getTarget() != this)
+		{
+			player.setTarget(this);
+			return;
+		}
+		TextCommandHandler.showHtml(player, this);
 	}
 }

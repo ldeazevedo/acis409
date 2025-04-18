@@ -15,6 +15,7 @@ import net.sf.l2j.commons.config.ExProperties;
 import net.sf.l2j.commons.logging.CLogger;
 
 import net.sf.l2j.gameserver.enums.GeoType;
+import net.sf.l2j.gameserver.model.events.happyhour.HappyHour;
 import net.sf.l2j.gameserver.model.holder.IntIntHolder;
 
 /**
@@ -39,6 +40,72 @@ public final class Config
 	private static final String PLAYERS_FILE = "./config/players.properties";
 	private static final String SERVER_FILE = "./config/server.properties";
 	private static final String SIEGE_FILE = "./config/siege.properties";
+
+	 /////////////////////////////////////////////////
+	// PC Bang Settings
+	/////////////////////////////////////////////////
+	public static boolean PC_BANG_ENABLED;
+	public static int MAX_PC_BANG_POINTS;
+	public static boolean ENABLE_DOUBLE_PC_BANG_POINTS;
+	public static int DOUBLE_PC_BANG_POINTS_CHANCE;
+	public static double PC_BANG_POINT_RATE;
+	public static boolean RANDOM_PC_BANG_POINT;
+	
+	/** Happy Hour **/
+	public static boolean HAPPY_HOUR_ENABLED;
+	public static String HAPPY_HOUR_DAYS_AND_HOUR;
+	public static double HAPPY_HOUR_EXP;
+	public static double HAPPY_HOUR_SP;
+	public static List<HappyHour> HAPPY_HOUR_LIST = new ArrayList<>();
+	
+	/** TvT */
+	public static boolean TVT_EVENT_ENABLED;
+	public static String[] TVT_EVENT_INTERVAL;
+	public static int TVT_EVENT_PARTICIPATION_TIME;
+	public static int TVT_EVENT_RUNNING_TIME;
+	public static int TVT_EVENT_PARTICIPATION_NPC_ID;
+	public static int[] TVT_EVENT_PARTICIPATION_NPC_COORDINATES = new int[4];
+	public static int[] TVT_EVENT_PARTICIPATION_FEE = new int[2];
+	public static int TVT_EVENT_MIN_PLAYERS_IN_TEAMS;
+	public static int TVT_EVENT_MAX_PLAYERS_IN_TEAMS;
+	public static int TVT_EVENT_RESPAWN_TELEPORT_DELAY;
+	public static int TVT_EVENT_START_LEAVE_TELEPORT_DELAY;
+	public static String TVT_EVENT_TEAM_1_NAME;
+	public static int[] TVT_EVENT_TEAM_1_COORDINATES = new int[3];
+	public static String TVT_EVENT_TEAM_2_NAME;
+	public static int[] TVT_EVENT_TEAM_2_COORDINATES = new int[3];
+	public static List<int[]> TVT_EVENT_REWARDS;
+	public static boolean TVT_EVENT_TARGET_TEAM_MEMBERS_ALLOWED;
+	public static boolean TVT_EVENT_SCROLL_ALLOWED;
+	public static boolean TVT_EVENT_POTIONS_ALLOWED;
+	public static boolean TVT_EVENT_SUMMON_BY_ITEM_ALLOWED;
+	public static List<Integer> TVT_DOORS_IDS_TO_OPEN;
+	public static List<Integer> TVT_DOORS_IDS_TO_CLOSE;
+	public static boolean TVT_REWARD_TEAM_TIE;
+	public static byte TVT_EVENT_MIN_LVL;
+	public static byte TVT_EVENT_MAX_LVL;
+	public static int TVT_EVENT_EFFECTS_REMOVAL;
+	public static Map<Integer, Integer> TVT_EVENT_FIGHTER_BUFFS;
+	public static Map<Integer, Integer> TVT_EVENT_MAGE_BUFFS;
+
+	/** Buffer Manager Settings */
+	public static int BUFFS_MASTER_MAX_SKILLS_PER_SCHEME;
+	public static int BUFFS_MASTER_STATIC_COST_PER_BUFF;
+	public static int BUFFS_MASTER_PAYMENT_ITEM;
+	public static String BUFFS_MASTER_PAYMENT_ITEM_NAME;
+	public static int[] BUFFS_MASTER_WARRIOR_SCHEME;
+	public static int[] BUFFS_MASTER_MYSTIC_SCHEME;
+	public static int[] BUFFS_MASTER_HEALER_SCHEME;
+	public static int[] BUFFS_MASTER_TANKER_SCHEME;
+	public static int BUFFS_MASTER_CP_RESTORE_PRICE;
+	public static int BUFFS_MASTER_HP_RESTORE_PRICE;
+	public static int BUFFS_MASTER_MP_RESTORE_PRICE;
+	public static boolean BUFFS_MASTER_CAN_USE_KARMA;
+	public static boolean BUFFS_MASTER_CAN_USE_OUTSIDE_TOWN;
+	public static boolean BUFFS_MASTER_CAN_USE_IN_COMBAT;
+	// --------------------------------------------------
+	// Clans settings
+	// --------------------------------------------------
 	
 	// --------------------------------------------------
 	// Clans settings
@@ -649,6 +716,236 @@ public final class Config
 		FISH_CHAMPIONSHIP_REWARD_3 = events.getProperty("FishChampionshipReward3", 300000);
 		FISH_CHAMPIONSHIP_REWARD_4 = events.getProperty("FishChampionshipReward4", 200000);
 		FISH_CHAMPIONSHIP_REWARD_5 = events.getProperty("FishChampionshipReward5", 100000);
+		/** HAPPY HOUR */
+		HAPPY_HOUR_ENABLED = events.getProperty("HappyHourEnabled", false);
+		HAPPY_HOUR_DAYS_AND_HOUR = events.getProperty("HappyHourDaysAndHours");
+		for (String happyHour : HAPPY_HOUR_DAYS_AND_HOUR.split(";"))
+		{
+			String[] parsed = happyHour.split(",");
+			int day = Integer.parseInt(parsed[0]);
+			int startHour = Integer.parseInt(parsed[1]);
+			int endHour = Integer.parseInt(parsed[2]);
+			LOGGER.info("HappyHour[" + day + "|" + startHour + "|" + endHour + "]");
+			HAPPY_HOUR_LIST.add(new HappyHour(day, startHour, endHour));
+		}
+		HAPPY_HOUR_EXP = events.getProperty("HappyHourExp", 7.0);
+		HAPPY_HOUR_SP = events.getProperty("HappyHourSP", 7.0);
+		
+		
+		PC_BANG_ENABLED = events.getProperty("Enabled", false);
+        MAX_PC_BANG_POINTS = Integer.parseInt(events.getProperty("MaxPcBangPoints", "200000"));
+        if (MAX_PC_BANG_POINTS < 0)
+            MAX_PC_BANG_POINTS = 0;
+        ENABLE_DOUBLE_PC_BANG_POINTS = Boolean.parseBoolean(events.getProperty("DoublingAcquisitionPoints", "false"));
+        DOUBLE_PC_BANG_POINTS_CHANCE = Integer.parseInt(events.getProperty("DoublingAcquisitionPointsChance", "1"));
+        if (DOUBLE_PC_BANG_POINTS_CHANCE < 0 || DOUBLE_PC_BANG_POINTS_CHANCE > 100)
+            DOUBLE_PC_BANG_POINTS_CHANCE = 1;
+        PC_BANG_POINT_RATE = Double.parseDouble(events.getProperty("AcquisitionPointsRate", "1.0"));
+        if (PC_BANG_POINT_RATE < 0)
+            PC_BANG_POINT_RATE = 1;
+        RANDOM_PC_BANG_POINT = Boolean.parseBoolean(events.getProperty("AcquisitionPointsRandom", "false"));
+		
+        
+		TVT_EVENT_ENABLED = events.getProperty("TvTEventEnabled", false);
+		TVT_EVENT_INTERVAL = events.getProperty("TvTEventInterval", "20:00").split(",");
+		TVT_EVENT_PARTICIPATION_TIME = Integer.parseInt(events.getProperty("TvTEventParticipationTime", "3600"));
+		TVT_EVENT_RUNNING_TIME = Integer.parseInt(events.getProperty("TvTEventRunningTime", "1800"));
+		TVT_EVENT_PARTICIPATION_NPC_ID = Integer.parseInt(events.getProperty("TvTEventParticipationNpcId", "0"));
+		
+		if (TVT_EVENT_PARTICIPATION_NPC_ID == 0)
+		{
+			TVT_EVENT_ENABLED = false;
+			LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventParticipationNpcId");
+		}
+		else
+		{
+			String[] tvtNpcCoords = events.getProperty("TvTEventParticipationNpcCoordinates", "0,0,0").split(",");
+			if (tvtNpcCoords.length < 3)
+			{
+				TVT_EVENT_ENABLED = false;
+				LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventParticipationNpcCoordinates");
+			}
+			else
+			{
+				TVT_EVENT_REWARDS = new ArrayList<>();
+				TVT_DOORS_IDS_TO_OPEN = new ArrayList<>();
+				TVT_DOORS_IDS_TO_CLOSE = new ArrayList<>();
+				TVT_EVENT_PARTICIPATION_NPC_COORDINATES = new int[4];
+				TVT_EVENT_TEAM_1_COORDINATES = new int[3];
+				TVT_EVENT_TEAM_2_COORDINATES = new int[3];
+				TVT_EVENT_PARTICIPATION_NPC_COORDINATES[0] = Integer.parseInt(tvtNpcCoords[0]);
+				TVT_EVENT_PARTICIPATION_NPC_COORDINATES[1] = Integer.parseInt(tvtNpcCoords[1]);
+				TVT_EVENT_PARTICIPATION_NPC_COORDINATES[2] = Integer.parseInt(tvtNpcCoords[2]);
+				TVT_EVENT_MIN_PLAYERS_IN_TEAMS = Integer.parseInt(events.getProperty("TvTEventMinPlayersInTeams", "1"));
+				TVT_EVENT_MAX_PLAYERS_IN_TEAMS = Integer.parseInt(events.getProperty("TvTEventMaxPlayersInTeams", "20"));
+				TVT_EVENT_MIN_LVL = Byte.parseByte(events.getProperty("TvTEventMinPlayerLevel", "1"));
+				TVT_EVENT_MAX_LVL = Byte.parseByte(events.getProperty("TvTEventMaxPlayerLevel", "80"));
+				TVT_EVENT_RESPAWN_TELEPORT_DELAY = Integer.parseInt(events.getProperty("TvTEventRespawnTeleportDelay", "20"));
+				TVT_EVENT_START_LEAVE_TELEPORT_DELAY = Integer.parseInt(events.getProperty("TvTEventStartLeaveTeleportDelay", "20"));
+				TVT_EVENT_EFFECTS_REMOVAL = Integer.parseInt(events.getProperty("TvTEventEffectsRemoval", "0"));
+				TVT_EVENT_TEAM_1_NAME = events.getProperty("TvTEventTeam1Name", "Team1");
+				tvtNpcCoords = events.getProperty("TvTEventTeam1Coordinates", "0,0,0").split(",");
+				if (tvtNpcCoords.length == 4)
+					TVT_EVENT_PARTICIPATION_NPC_COORDINATES[3] = Integer.parseInt(tvtNpcCoords[3]);
+				if (tvtNpcCoords.length < 3)
+				{
+					TVT_EVENT_ENABLED = false;
+					LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventTeam1Coordinates");
+				}
+				else
+				{
+					TVT_EVENT_TEAM_1_COORDINATES[0] = Integer.parseInt(tvtNpcCoords[0]);
+					TVT_EVENT_TEAM_1_COORDINATES[1] = Integer.parseInt(tvtNpcCoords[1]);
+					TVT_EVENT_TEAM_1_COORDINATES[2] = Integer.parseInt(tvtNpcCoords[2]);
+					TVT_EVENT_TEAM_2_NAME = events.getProperty("TvTEventTeam2Name", "Team2");
+					tvtNpcCoords = events.getProperty("TvTEventTeam2Coordinates", "0,0,0").split(",");
+					if (tvtNpcCoords.length < 3)
+					{
+						TVT_EVENT_ENABLED = false;
+						LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventTeam2Coordinates");
+					}
+					else
+					{
+						TVT_EVENT_TEAM_2_COORDINATES[0] = Integer.parseInt(tvtNpcCoords[0]);
+						TVT_EVENT_TEAM_2_COORDINATES[1] = Integer.parseInt(tvtNpcCoords[1]);
+						TVT_EVENT_TEAM_2_COORDINATES[2] = Integer.parseInt(tvtNpcCoords[2]);
+						tvtNpcCoords = events.getProperty("TvTEventParticipationFee", "0,0").split(",");
+						try
+						{
+							TVT_EVENT_PARTICIPATION_FEE[0] = Integer.parseInt(tvtNpcCoords[0]);
+							TVT_EVENT_PARTICIPATION_FEE[1] = Integer.parseInt(tvtNpcCoords[1]);
+						}
+						catch (NumberFormatException nfe)
+						{
+							if (tvtNpcCoords.length > 0)
+							{
+								LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventParticipationFee");
+							}
+						}
+						tvtNpcCoords = events.getProperty("TvTEventReward", "57,100000").split(";");
+						for (String reward : tvtNpcCoords)
+						{
+							String[] rewardSplit = reward.split(",");
+							if (rewardSplit.length != 2)
+							{
+								LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventReward \"\"");
+							}
+							else
+							{
+								try
+								{
+									TVT_EVENT_REWARDS.add(new int[]
+									{
+										Integer.parseInt(rewardSplit[0]),
+										Integer.parseInt(rewardSplit[1])
+									});
+								}
+								catch (NumberFormatException nfe)
+								{
+									if (!reward.isEmpty())
+									{
+										LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventReward \"\"");
+									}
+								}
+							}
+						}
+						
+						TVT_EVENT_TARGET_TEAM_MEMBERS_ALLOWED = Boolean.parseBoolean(events.getProperty("TvTEventTargetTeamMembersAllowed", "true"));
+						TVT_EVENT_SCROLL_ALLOWED = Boolean.parseBoolean(events.getProperty("TvTEventScrollsAllowed", "false"));
+						TVT_EVENT_POTIONS_ALLOWED = Boolean.parseBoolean(events.getProperty("TvTEventPotionsAllowed", "false"));
+						TVT_EVENT_SUMMON_BY_ITEM_ALLOWED = Boolean.parseBoolean(events.getProperty("TvTEventSummonByItemAllowed", "false"));
+						TVT_REWARD_TEAM_TIE = Boolean.parseBoolean(events.getProperty("TvTRewardTeamTie", "false"));
+						tvtNpcCoords = events.getProperty("TvTDoorsToOpen", "").split(";");
+						for (String door : tvtNpcCoords)
+						{
+							try
+							{
+								TVT_DOORS_IDS_TO_OPEN.add(Integer.parseInt(door));
+							}
+							catch (NumberFormatException nfe)
+							{
+								if (!door.isEmpty())
+								{
+									LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTDoorsToOpen \"\"");
+								}
+							}
+						}
+						
+						tvtNpcCoords = events.getProperty("TvTDoorsToClose", "").split(";");
+						for (String door : tvtNpcCoords)
+						{
+							try
+							{
+								TVT_DOORS_IDS_TO_CLOSE.add(Integer.parseInt(door));
+							}
+							catch (NumberFormatException nfe)
+							{
+								if (!door.isEmpty())
+								{
+									LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTDoorsToClose \"\"");
+								}
+							}
+						}
+						
+						tvtNpcCoords = events.getProperty("TvTEventFighterBuffs", "").split(";");
+						if (!tvtNpcCoords[0].isEmpty())
+						{
+							TVT_EVENT_FIGHTER_BUFFS = new HashMap<>(tvtNpcCoords.length);
+							for (String skill : tvtNpcCoords)
+							{
+								String[] skillSplit = skill.split(",");
+								if (skillSplit.length != 2)
+								{
+									LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventFighterBuffs \"\"");
+								}
+								else
+								{
+									try
+									{
+										TVT_EVENT_FIGHTER_BUFFS.put(Integer.parseInt(skillSplit[0]), Integer.parseInt(skillSplit[1]));
+									}
+									catch (NumberFormatException nfe)
+									{
+										if (!skill.isEmpty())
+										{
+											LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventFighterBuffs \"\"");
+										}
+									}
+								}
+							}
+						}
+						
+						tvtNpcCoords = events.getProperty("TvTEventMageBuffs", "").split(";");
+						if (!tvtNpcCoords[0].isEmpty())
+						{
+							TVT_EVENT_MAGE_BUFFS = new HashMap<>(tvtNpcCoords.length);
+							for (String skill : tvtNpcCoords)
+							{
+								String[] skillSplit = skill.split(",");
+								if (skillSplit.length != 2)
+								{
+									LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventMageBuffs \"\"");
+								}
+								else
+								{
+									try
+									{
+										TVT_EVENT_MAGE_BUFFS.put(Integer.parseInt(skillSplit[0]), Integer.parseInt(skillSplit[1]));
+									}
+									catch (NumberFormatException nfe)
+									{
+										if (!skill.isEmpty())
+										{
+											LOGGER.warn("TvTEventEngine[Config.load()]: invalid config property -> TvTEventMageBuffs \"\"");
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	/**
@@ -772,6 +1069,49 @@ public final class Config
 		RANDOM_WALK_RATE = npcs.getProperty("RandomWalkRate", 30);
 		MAX_DRIFT_RANGE = npcs.getProperty("MaxDriftRange", 200);
 		DEFAULT_SEE_RANGE = npcs.getProperty("DefaultSeeRange", 450);
+		
+		//-------------------- Buffs Master NPC -------------------
+
+		BUFFS_MASTER_MAX_SKILLS_PER_SCHEME = npcs.getProperty("MaxSkillsPerScheme", 24);
+		BUFFS_MASTER_STATIC_COST_PER_BUFF = npcs.getProperty("BufferStaticCostPerBuff", 0);
+		BUFFS_MASTER_PAYMENT_ITEM = npcs.getProperty("BufferPaymentItem",57);
+		BUFFS_MASTER_PAYMENT_ITEM_NAME = npcs.getProperty("PaymentItemName", "");
+		
+		
+		BUFFS_MASTER_CP_RESTORE_PRICE = npcs.getProperty("CPRestorePrice",0);
+		BUFFS_MASTER_HP_RESTORE_PRICE = npcs.getProperty("HPRestorePrice",0);
+		BUFFS_MASTER_MP_RESTORE_PRICE = npcs.getProperty("MPRestorePrice",0);
+		
+		BUFFS_MASTER_CAN_USE_KARMA  = npcs.getProperty("CanUseWithKarma", false);
+		BUFFS_MASTER_CAN_USE_OUTSIDE_TOWN  = npcs.getProperty("CanUseOutsideTown", false);
+		BUFFS_MASTER_CAN_USE_IN_COMBAT = npcs.getProperty("CanUseInCombat", false);
+		
+		
+		String warScheme = npcs.getProperty("WarriorScheme");
+		String[] array = warScheme.split(";");
+		BUFFS_MASTER_WARRIOR_SCHEME = new int[array.length];
+		for (int i = 0; i < array.length; i++)
+			BUFFS_MASTER_WARRIOR_SCHEME[i] = Integer.parseInt(array[i]);
+				
+		String mystScheme = npcs.getProperty("MysticScheme");
+		String[] array2 = mystScheme.split(";");
+		BUFFS_MASTER_MYSTIC_SCHEME = new int[array2.length];
+		for (int i = 0; i < array2.length; i++)
+			BUFFS_MASTER_MYSTIC_SCHEME[i] = Integer.parseInt(array2[i]);
+		
+		String healerScheme = npcs.getProperty("HealerScheme");
+		String[] array3 = healerScheme.split(";");
+		BUFFS_MASTER_HEALER_SCHEME = new int[array3.length];
+		for (int i = 0; i < array3.length; i++)
+			BUFFS_MASTER_HEALER_SCHEME[i] = Integer.parseInt(array3[i]);
+		
+		String tankerScheme = npcs.getProperty("TankerScheme");
+		String[] array4 = tankerScheme.split(";");
+		BUFFS_MASTER_TANKER_SCHEME = new int[array4.length];
+		for (int i = 0; i < array4.length; i++)
+			BUFFS_MASTER_TANKER_SCHEME[i] = Integer.parseInt(array4[i]);
+		
+		//----------------------------------------------------------
 	}
 	
 	/**

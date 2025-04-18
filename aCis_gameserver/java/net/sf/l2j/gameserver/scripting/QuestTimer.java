@@ -30,7 +30,6 @@ public class QuestTimer
 		else if (player != null)
 			_instanceId = player.getInstanceId();
 		
-		
 		if (period > 0)
 			_schedular = ThreadPool.scheduleAtFixedRate(this::runTick, initial, period);
 		else

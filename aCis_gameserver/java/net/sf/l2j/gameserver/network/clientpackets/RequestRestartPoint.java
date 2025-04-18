@@ -9,6 +9,8 @@ import net.sf.l2j.gameserver.data.xml.RestartPointData;
 import net.sf.l2j.gameserver.enums.RestartType;
 import net.sf.l2j.gameserver.enums.SiegeSide;
 import net.sf.l2j.gameserver.model.actor.Player;
+import net.sf.l2j.gameserver.model.events.EventManager;
+import net.sf.l2j.gameserver.model.events.tvt.TvTEvent;
 import net.sf.l2j.gameserver.model.location.Location;
 import net.sf.l2j.gameserver.model.pledge.Clan;
 import net.sf.l2j.gameserver.model.residence.castle.Siege;
@@ -32,6 +34,12 @@ public final class RequestRestartPoint extends L2GameClientPacket
 	{
 		final Player player = getClient().getPlayer();
 		if (player == null)
+			return;
+		
+		if (TvTEvent.isStarted() && TvTEvent.isPlayerParticipant(player.getObjectId()))
+			return;
+		
+		if (EventManager.getInstance().isInEvent(player))
 			return;
 		
 		// TODO Needed? Possible?

@@ -8,7 +8,6 @@
 	<property name="build.dist" location="${build}/dist" />
 	<property name="build.dist.login" location="${build.dist}/login" />
 	<property name="build.dist.game" location="${build.dist}/gameserver" />
-	<property name="ajc" value="org.aspectj.tools.ant.taskdefs.Ajc11CompilerAdapter"/>
 
 	<target name="dist" depends="jar">
 		<copy todir="${build.dist.login}/libs">
@@ -86,20 +85,7 @@
 
 	<target name="compile" depends="init" description="Compile the source.">
 		<javac srcdir="${src}" classpathref="classpath" destdir="${build.classes}" debug="true" debuglevel="lines,vars,source" includeantruntime="false" />
-		<ajc destdir="${build.classes}/aspect" srcdir="${src}/net/sf/l2j/aspect">
-            <!-- declare classes needed to compile the target files -->
-            <classpath>
-                <pathelement location="${lib}/aspectjrt.jar"/>
-            </classpath>
-        </ajc>
 	</target>
-
-	<taskdef name="ajc" classname="org.aspectj.tools.ant.taskdefs.Ajc10" >
-		<!-- declare classes needed to run the tasks and tools -->
-		<classpath>
-			<pathelement location="${lib}/aspectjtools.jar"/>
-		</classpath>
-	</taskdef>
 
 	<target name="init" depends="clean,checkRequirements" description="Create the output directories.">
 		<mkdir dir="${build}" />

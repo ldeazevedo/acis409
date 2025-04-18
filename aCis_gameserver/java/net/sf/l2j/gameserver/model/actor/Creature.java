@@ -12,6 +12,7 @@ import net.sf.l2j.commons.lang.StringUtil;
 import net.sf.l2j.commons.random.Rnd;
 
 import net.sf.l2j.Config;
+import net.sf.l2j.gameserver.data.SkillTable;
 import net.sf.l2j.gameserver.data.manager.ZoneManager;
 import net.sf.l2j.gameserver.data.xml.NpcData;
 import net.sf.l2j.gameserver.enums.AiEventType;
@@ -1957,5 +1958,17 @@ public abstract class Creature extends WorldObject
 	public boolean isInBoat()
 	{
 		return false;
+	}
+	
+	public void getSkill(L2Skill skill)
+	{
+		getSkill(skill.getId(), skill.getLevel());
+	}
+	
+	public void getSkill(Integer id, Integer level)
+	{
+		final L2Skill skill = SkillTable.getInstance().getInfo(id, level);
+		if (skill != null && getFirstEffect(skill) == null)
+			skill.getEffects(this, this);
 	}
 }
