@@ -5,9 +5,10 @@ import net.sf.l2j.commons.logging.CLogger;
 import net.sf.l2j.commons.pool.ThreadPool;
 import net.sf.l2j.gameserver.model.World;
 
-import java.time.Instant;
-import java.time.temporal.ChronoField;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Date;
 
 public final class HappyHourTaskManager implements Runnable {
 
@@ -25,14 +26,17 @@ public final class HappyHourTaskManager implements Runnable {
         if (!CustomConfig.HAPPY_HOUR_ENABLED)
             return;
 
-        var hour = Instant.now().get(ChronoField.HOUR_OF_DAY);
+        var hour = ZonedDateTime.ofInstant(new Date().toInstant(), ZoneId.systemDefault()).getHour();
         var arrayOfHours = Arrays.stream(CustomConfig.HAPPY_HOUR_TIME_TABLE).boxed().toList();
         var isTimeToRun = arrayOfHours.contains(hour);
         if (isHappyHourRunning != isTimeToRun) {
-            if (isTimeToRun)
+            if (isTimeToRun) {
                 World.announceToOnlinePlayers("HAPPY HOUR just started! Enjoy it!");
-            else
+                log.info("HAPPY HOUR started.");
+            } else {
                 World.announceToOnlinePlayers("HAPPY HOUR just finished. Stay tuned for the next time!");
+                log.info("HAPPY HOUR finished.");
+            }
 
             isHappyHourRunning = arrayOfHours.contains(hour);
         }
