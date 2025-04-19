@@ -18,6 +18,7 @@ public final class HappyHourTaskManager implements Runnable {
 
     private HappyHourTaskManager() {
         // Run task each second.
+        log.info("HappyHour initialized.");
         ThreadPool.scheduleAtFixedRate(this, 1000, 1000);
     }
 

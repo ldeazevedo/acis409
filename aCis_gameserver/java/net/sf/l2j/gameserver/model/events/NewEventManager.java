@@ -18,7 +18,7 @@ public class NewEventManager implements IEvent
 
 	private NewEventManager()
 	{
-	}
+	} 
 
 	public void startEvent(EventEnum eventEnum)
 	{
